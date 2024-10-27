@@ -1,9 +1,6 @@
 import fs from 'fs'
-import { storageService } from './async-storage.service.js'
 import { utilService } from './util.service.js'
 
-// const STORAGE_KEY = 'bugDB'
-// _createBugs()
 const bugs = utilService.readJsonFile('data/bugs.json')
 
 export const bugService = {
@@ -24,20 +21,22 @@ function getById(bugId) {
 
 function remove(bugId) {
   const bugIdx = bugs.findIndex((bug) => bug._id === bugId)
-  bugs.splice(1, bugIdx)
+  bugs.splice(bugIdx, 1)
   return _saveBugsToFile()
 }
 
 function save(bugToSave) {
   if (bugToSave._id) {
-    bugs.findIndex((bug) => bug._id === bugToSave._id)
+    const bugIdx = bugs.findIndex((bug) => bug._id === bugToSave._id)
     bugs[bugIdx] = bugToSave
   } else {
     bugToSave._id = utilService.makeId()
     bugs.unshift(bugToSave)
-    return _saveBugsToFile().then(() => bugToSave)
   }
+  return _saveBugsToFile().then(() => bugToSave)
 }
+// const STORAGE_KEY = 'bugDB'
+// _createBugs()
 
 // function _createBugs() {
 //   let bugs = utilService.loadFromStorage(STORAGE_KEY)
@@ -71,7 +70,7 @@ function save(bugToSave) {
 function _saveBugsToFile() {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(bugs, null, 4)
-    fs.writeFile('data/car.json', data, (err) => {
+    fs.writeFile('data/bugs.json', data, (err) => {
       if (err) {
         return reject(err)
       }
