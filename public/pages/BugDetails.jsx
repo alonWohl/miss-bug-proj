@@ -28,6 +28,10 @@ export function BugDetails() {
         <p>
           Severity: <span>{bug.severity}</span>
         </p>
+        <p>
+          description: <span>{bug.description}</span>
+        </p>
+
         <Link to="/bug">Back to List</Link>
       </div>
     )

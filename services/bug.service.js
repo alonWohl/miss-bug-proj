@@ -35,6 +35,19 @@ function save(bugToSave) {
   }
   return _saveBugsToFile().then(() => bugToSave)
 }
+
+function _saveBugsToFile() {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(bugs, null, 4)
+    fs.writeFile('data/bugs.json', data, (err) => {
+      if (err) {
+        return reject(err)
+      }
+      resolve()
+    })
+  })
+}
+
 // const STORAGE_KEY = 'bugDB'
 // _createBugs()
 
@@ -66,15 +79,3 @@ function save(bugToSave) {
 //     utilService.saveToStorage(STORAGE_KEY, bugs)
 //   }
 // }
-
-function _saveBugsToFile() {
-  return new Promise((resolve, reject) => {
-    const data = JSON.stringify(bugs, null, 4)
-    fs.writeFile('data/bugs.json', data, (err) => {
-      if (err) {
-        return reject(err)
-      }
-      resolve()
-    })
-  })
-}
