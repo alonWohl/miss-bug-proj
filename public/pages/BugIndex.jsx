@@ -1,18 +1,26 @@
 import { bugService } from '../services/bug.service.js'
 import { showSuccessMsg, showErrorMsg } from '../services/event-bus.service.js'
 import { BugList } from '../cmps/BugList.jsx'
+import { BugFilter } from '../cmps/BugFilter.jsx'
 
 const { useState, useEffect } = React
 
 export function BugIndex() {
   const [bugs, setBugs] = useState(null)
+  const [filterBy, setFilterBy] = useState(bugService.getDefaultFilter())
 
   useEffect(() => {
     loadBugs()
-  }, [])
+  }, [filterBy])
 
   function loadBugs() {
-    bugService.query().then(setBugs)
+    bugService
+      .query(filterBy)
+      .then(setBugs)
+      .catch((err) => {
+        showErrorMsg('cant load bugs')
+        console.error(err)
+      })
   }
 
   function onRemoveBug(bugId) {
@@ -66,11 +74,28 @@ export function BugIndex() {
       })
   }
 
+  function onDownloadPdf() {
+    bugService
+      .downloadPdf()
+      .then(() => {
+        console.log('PDF Downloaded')
+      })
+      .catch((err) => {
+        console.error('Failed to generate PDF:', err)
+      })
+  }
+
+  function onSetFilterBy(newFilterBy) {
+    setFilterBy((prevFilterBy) => ({ ...prevFilterBy, ...newFilterBy }))
+  }
+
   return (
     <main>
       <section className="info-actions">
         <h3>Bugs App</h3>
+        <BugFilter filterBy={filterBy} onSetFilterBy={onSetFilterBy} />
         <button onClick={onAddBug}>Add Bug ⛐</button>
+        <button onClick={onDownloadPdf}>Download PDF</button>
       </section>
       <main>
         <BugList bugs={bugs} onRemoveBug={onRemoveBug} onEditBug={onEditBug} />

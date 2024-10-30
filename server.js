@@ -77,6 +77,13 @@ app.get('/api/bug/:bugId/remove', (req, res) => {
       req.status('500').send('cannot remove bug')
     })
 })
+app.get('/api/bug/pdf', (req, res) => {
+  res.setHeader('Content-Type', 'application/pdf')
+  res.setHeader('Content-Disposition', 'attachment; filename="bugs.pdf"')
+
+  const pdfStream = bugService.generatePdfStream()
+  pdfStream.pipe(res)
+})
 
 const port = 3031
 app.get('/', (req, res) => res.send('Hello there'))

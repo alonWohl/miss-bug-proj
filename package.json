@@ -16,6 +16,8 @@
   "description": "",
   "dependencies": {
     "cookie-parser": "^1.4.7",
-    "express": "^4.21.1"
+    "express": "^4.21.1",
+    "pdfkit": "^0.15.0",
+    "pdfkit-table": "^0.1.99"
   }
 }

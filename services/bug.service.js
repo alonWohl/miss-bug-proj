@@ -1,4 +1,5 @@
 import fs from 'fs'
+import PDFDocument from 'pdfkit-table'
 import { utilService } from './util.service.js'
 
 const bugs = utilService.readJsonFile('data/bugs.json')
@@ -7,7 +8,8 @@ export const bugService = {
   query,
   getById,
   save,
-  remove
+  remove,
+  generatePdfStream
 }
 
 function query() {
@@ -47,7 +49,32 @@ function _saveBugsToFile() {
     })
   })
 }
+function generatePdfStream() {
+  const bugs = utilService.readJsonFile('data/bugs.json')
+  const doc = new PDFDocument({ margin: 30, size: 'A4' })
 
+  const SortedBugs = bugs.sort((a, b) => b.createdAt - a.createdAt)
+  const tableRows = SortedBugs.map(({ title, description, severity }) => [title, description, severity])
+
+  const table = {
+    title: 'Bugs Report',
+    subtitle: 'Sorted by Creation Time',
+    headers: ['Title', 'Description', 'Severity'],
+    rows: tableRows
+  }
+
+  doc.table(table, {
+    prepareHeader: () => doc.fontSize(12).font('Helvetica-Bold'),
+    prepareRow: (row, i) =>
+      doc
+        .fontSize(10)
+        .font('Helvetica')
+        .fillColor(i % 2 ? 'black' : 'gray')
+  })
+
+  doc.end()
+  return doc
+}
 // const STORAGE_KEY = 'bugDB'
 // _createBugs()
 
