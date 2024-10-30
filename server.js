@@ -36,8 +36,28 @@ app.get('/api/bug/save', (req, res) => {
     })
 })
 
+function manageVisitedBugs(req, res, bugId) {
+  let visitedBugs = req.cookies.visitedBugs ? JSON.parse(req.cookies.visitedBugs) : []
+
+  if (!visitedBugs.includes(bugId)) {
+    visitedBugs.push(bugId)
+
+    if (visitedBugs.length > 3) {
+      loggerService.error(`User visited more than 3 bugs: ${visitedBugs}`)
+      return res.status(401).send('Wait for a bit')
+    }
+
+    res.cookie('visitedBugs', JSON.stringify(visitedBugs), { maxAge: 7 * 1000 })
+  }
+
+  console.log('User visited the following bugs:', visitedBugs)
+}
+
 app.get('/api/bug/:bugId', (req, res) => {
   const { bugId } = req.params
+
+  if (manageVisitedBugs(req, res, bugId)) return
+
   bugService
     .getById(bugId)
     .then((bug) => res.send(bug))
