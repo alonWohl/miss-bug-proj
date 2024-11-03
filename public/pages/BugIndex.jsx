@@ -8,14 +8,15 @@ const { useState, useEffect } = React
 export function BugIndex() {
   const [bugs, setBugs] = useState(null)
   const [filterBy, setFilterBy] = useState(bugService.getDefaultFilter())
+  const [sortBy, setSortBy] = useState(bugService.getDefaultSort())
 
   useEffect(() => {
     loadBugs()
-  }, [filterBy])
+  }, [filterBy, sortBy])
 
   function loadBugs() {
     bugService
-      .query(filterBy)
+      .query(filterBy, sortBy)
       .then(setBugs)
       .catch((err) => {
         showErrorMsg('cant load bugs')
@@ -75,29 +76,44 @@ export function BugIndex() {
   }
 
   function onDownloadPdf() {
-    bugService
-      .downloadPdf()
-      .then(() => {
-        console.log('PDF Downloaded')
-      })
-      .catch((err) => {
-        console.error('Failed to generate PDF:', err)
-      })
+    bugService.downloadPdf().then(window.open('/pdf')).catch(console.error)
   }
 
   function onSetFilterBy(newFilterBy) {
     setFilterBy((prevFilterBy) => ({ ...prevFilterBy, ...newFilterBy }))
   }
 
+  function onSetSortBy(sortBy) {
+    setSortBy((prevSortBy) => ({ ...prevSortBy, ...sortBy }))
+  }
+
+  function onChangePageIdx(diff) {
+    setFilterBy((prevFilter) => ({ ...prevFilter, pageIdx: prevFilter.pageIdx + diff }))
+  }
+
   return (
     <main>
       <section className="info-actions">
         <h3>Bugs App</h3>
-        <BugFilter filterBy={filterBy} onSetFilterBy={onSetFilterBy} />
+        <BugFilter filterBy={filterBy} onSetFilterBy={onSetFilterBy} onSetSortBy={onSetSortBy} />
         <button onClick={onAddBug}>Add Bug ⛐</button>
         <button onClick={onDownloadPdf}>Download PDF</button>
       </section>
       <main>
+        <button
+          onClick={() => {
+            onChangePageIdx(1)
+          }}>
+          +
+        </button>
+        {filterBy.pageIdx + 1 || ''}
+        <button
+          onClick={() => {
+            onChangePageIdx(-1)
+          }}
+          disabled={filterBy.pageIdx === 0}>
+          -
+        </button>
         <BugList bugs={bugs} onRemoveBug={onRemoveBug} onEditBug={onEditBug} />
       </main>
     </main>

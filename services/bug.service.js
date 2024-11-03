@@ -1,19 +1,30 @@
 import fs from 'fs'
-import PDFDocument from 'pdfkit-table'
 import { utilService } from './util.service.js'
 
 const bugs = utilService.readJsonFile('data/bugs.json')
+const PAGE_SIZE = 5
 
 export const bugService = {
   query,
   getById,
   save,
-  remove,
-  generatePdfStream
+  remove
 }
 
-function query() {
-  return Promise.resolve(bugs)
+function query({ filterBy, sortBy } = {}) {
+  const filteredBugs = _filter(filterBy)
+  const sortedBugs = _sort(filteredBugs, sortBy)
+
+  getNextBug(sortedBugs)
+
+  return Promise.resolve(sortedBugs)
+}
+
+function getNextBug(bugs) {
+  bugs.forEach((bug, idx) => {
+    bug.prevId = bugs[idx - 1] ? bugs[idx - 1]._id : bugs[bugs.length - 1]._id
+    bug.nextId = bugs[idx + 1] ? bugs[idx + 1]._id : bugs[0]._id
+  })
 }
 function getById(bugId) {
   const bug = bugs.find((bug) => bug._id === bugId)
@@ -30,9 +41,11 @@ function remove(bugId) {
 function save(bugToSave) {
   if (bugToSave._id) {
     const bugIdx = bugs.findIndex((bug) => bug._id === bugToSave._id)
+    bugToSave = { ...bugs[bugIdx], ...bugToSave, updatedAt: Date.now() }
     bugs[bugIdx] = bugToSave
   } else {
     bugToSave._id = utilService.makeId()
+    bugToSave.createdAt = Date.now()
     bugs.unshift(bugToSave)
   }
   return _saveBugsToFile().then(() => bugToSave)
@@ -49,60 +62,42 @@ function _saveBugsToFile() {
     })
   })
 }
-function generatePdfStream() {
-  const bugs = utilService.readJsonFile('data/bugs.json')
-  const doc = new PDFDocument({ margin: 30, size: 'A4' })
 
-  const SortedBugs = bugs.sort((a, b) => b.createdAt - a.createdAt)
-  const tableRows = SortedBugs.map(({ title, description, severity }) => [title, description, severity])
+function _filter(filterBy) {
+  let filteredBugs = bugs
 
-  const table = {
-    title: 'Bugs Report',
-    subtitle: 'Sorted by Creation Time',
-    headers: ['Title', 'Description', 'Severity'],
-    rows: tableRows
+  if (filterBy.txt) {
+    const regExp = new RegExp(filterBy.txt, 'i')
+    filteredBugs = filteredBugs.filter((bug) => regExp.test(bug.title))
   }
 
-  doc.table(table, {
-    prepareHeader: () => doc.fontSize(12).font('Helvetica-Bold'),
-    prepareRow: (row, i) =>
-      doc
-        .fontSize(10)
-        .font('Helvetica')
-        .fillColor(i % 2 ? 'black' : 'gray')
-  })
+  if (filterBy.minSeverity) {
+    filteredBugs = filteredBugs.filter((bug) => bug.severity >= filterBy.minSeverity)
+  }
 
-  doc.end()
-  return doc
+  if (filterBy.pageIdx !== undefined) {
+    const startIdx = filterBy.pageIdx * PAGE_SIZE
+    filteredBugs = filteredBugs.slice(startIdx, startIdx + PAGE_SIZE)
+  }
+
+  return filteredBugs
 }
-// const STORAGE_KEY = 'bugDB'
-// _createBugs()
 
-// function _createBugs() {
-//   let bugs = utilService.loadFromStorage(STORAGE_KEY)
-//   if (!bugs || !bugs.length) {
-//     bugs = [
-//       {
-//         title: 'Infinite Loop Detected',
-//         severity: 4,
-//         _id: '1NF1N1T3'
-//       },
-//       {
-//         title: 'Keyboard Not Found',
-//         severity: 3,
-//         _id: 'K3YB0RD'
-//       },
-//       {
-//         title: '404 Coffee Not Found',
-//         severity: 2,
-//         _id: 'C0FF33'
-//       },
-//       {
-//         title: 'Unexpected Response',
-//         severity: 1,
-//         _id: 'G0053'
-//       }
-//     ]
-//     utilService.saveToStorage(STORAGE_KEY, bugs)
-//   }
-// }
+function _sort(filteredBugs, sortBy) {
+  const sortDir = sortBy.dir
+  switch (sortBy.field) {
+    case 'createdAt':
+      filteredBugs = filteredBugs.sort((a, b) => sortDir * (a.createdAt - b.createdAt))
+      break
+
+    case 'severity':
+      filteredBugs = filteredBugs.sort((a, b) => sortDir * (a.severity - b.severity))
+      break
+
+    case 'title':
+      filteredBugs = filteredBugs.sort((a, b) => sortDir * a.title.localeCompare(b.title))
+      break
+  }
+
+  return filteredBugs
+}

@@ -5,30 +5,27 @@ export const bugService = {
   save,
   getById,
   getDefaultFilter,
+  getDefaultSort,
+  getFilterFromSearchParams,
   downloadPdf
 }
 
 const BASE_URL = '/api/bug/'
 
-function query(filterBy = {}) {
+function query(filterBy = {}, sortBy = {}) {
   return axios
-    .get(BASE_URL)
+    .get(BASE_URL, { params: { ...filterBy, ...sortBy } })
     .then((res) => res.data)
-    .then((bugs) => {
-      let filteredBugs = bugs
-      if (filterBy.txt) {
-        const regExp = new RegExp(filterBy.txt, 'i')
-        filteredBugs = filteredBugs.filter((bug) => regExp.test(bug.title))
-      }
-      if (filterBy.minSeverity) {
-        filteredBugs = filteredBugs.filter((bug) => bug.severity >= filterBy.minSeverity)
-      }
-      return filteredBugs
+    .catch((err) => {
+      console.error(err, 'cannot get bugs')
     })
 }
 
 function getById(bugId) {
-  return axios.get(BASE_URL + bugId).then((res) => res.data)
+  return axios
+    .get(BASE_URL + bugId)
+    .then((res) => res.data)
+    .catch((err) => console.error('err', err))
 }
 
 function remove(bugId) {
@@ -36,40 +33,51 @@ function remove(bugId) {
 }
 
 function save(bug) {
-  const url = BASE_URL + 'save'
-  let queryParams = `?title=${bug.title}&severity=${bug.severity}&description=${bug.description}`
-  if (bug._id) queryParams += `&_id=${bug._id}`
+  if (bug._id) {
+    return axios
+      .put(BASE_URL + bug._id, bug)
+      .then((res) => res.data)
+      .catch((err) => {
+        console.log('err:', err)
+        throw err
+      })
+  } else {
+    return axios
+      .post(BASE_URL, bug)
+      .then((res) => res.data)
+      .catch((err) => {
+        console.log('err:', err)
+        throw err
+      })
+  }
+}
+
+function downloadPdf() {
   return axios
-    .get(url + queryParams)
+    .get('/pdf')
     .then((res) => res.data)
     .catch((err) => {
-      console.log('err:', err)
+      console.log(err)
+      throw err
     })
 }
 
 function getDefaultFilter() {
-  return { txt: '', minSeverity: 0 }
+  return { txt: '', minSeverity: 0, pageIdx: 0 }
 }
 
-function downloadPdf() {
-  axios({
-    url: '/api/bug/pdf',
-    method: 'GET',
-    responseType: 'blob'
-  })
-    .then((response) => {
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+function getDefaultSort() {
+  return {
+    field: 'createdAt',
+    dir: 'asc'
+  }
+}
 
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', 'bugs.pdf')
-      document.body.appendChild(link)
-      link.click()
-
-      link.remove()
-      window.URL.revokeObjectURL(url)
-    })
-    .catch((error) => {
-      console.error('Error downloading PDF:', error)
-    })
+function getFilterFromSearchParams(searchParams) {
+  const txt = searchParams.get('txt') || ''
+  const minSeverity = searchParams.get('minSeverity') || ''
+  return {
+    txt,
+    minSeverity
+  }
 }

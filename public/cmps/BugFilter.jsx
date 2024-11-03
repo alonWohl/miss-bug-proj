@@ -1,11 +1,16 @@
 const { useEffect, useState } = React
 
-export function BugFilter({ filterBy, onSetFilterBy }) {
+export function BugFilter({ filterBy, onSetFilterBy, onSetSortBy }) {
   const [filterByToEdit, setFilterByToEdit] = useState({ ...filterBy })
+  const [sortByToEdit, setSortByToEdit] = useState({ field: 'createdAt', dir: 'asc' })
 
   useEffect(() => {
     onSetFilterBy(filterByToEdit)
   }, [filterByToEdit])
+
+  useEffect(() => {
+    onSetSortBy(sortByToEdit)
+  }, [sortByToEdit])
 
   function handleChange({ target }) {
     const field = target.name
@@ -16,26 +21,47 @@ export function BugFilter({ filterBy, onSetFilterBy }) {
       case 'range':
         value = +value
         break
-
       case 'checkbox':
         value = target.checked
         break
     }
     setFilterByToEdit((prevFilter) => ({ ...prevFilter, [field]: value }))
   }
+
+  function handleSortChange({ target }) {
+    const field = target.name
+    const value = target.value
+    setSortByToEdit((prevSort) => ({ ...prevSort, [field]: value }))
+  }
+
   function onSubmit(ev) {
     ev.preventDefault()
     console.log('Form submitted')
   }
 
+  const { txt, minSeverity } = filterByToEdit
+
   return (
     <fieldset>
       <legend>Filter</legend>
       <form className="bug-filter" onSubmit={onSubmit}>
-        <input onChange={handleChange} name="txt" id="txt" value={filterBy.txt || ''} type="text" placeholder="Search bugs..." />
+        <input onChange={handleChange} name="txt" id="txt" value={txt || ''} type="text" placeholder="Search bugs..." />
         <label htmlFor="minSeverity">By severity</label>
-        <input onChange={handleChange} name="minSeverity" value={filterBy.minSeverity || 0} type="range" min="0" max="10" id="minSeverity" />
+        <input onChange={handleChange} name="minSeverity" value={minSeverity || 0} type="range" min="0" max="10" id="minSeverity" />
         <label htmlFor="minSeverity">{filterBy.minSeverity}</label>
+
+        <label htmlFor="sortField">Sort by:</label>
+        <select name="field" onChange={handleSortChange} value={sortByToEdit.field}>
+          <option value="title">Title</option>
+          <option value="createdAt">Date Created</option>
+          <option value="severity">Severity</option>
+        </select>
+
+        <label htmlFor="sortDir">Order:</label>
+        <select name="dir" onChange={handleSortChange} value={sortByToEdit.dir}>
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
       </form>
     </fieldset>
   )
