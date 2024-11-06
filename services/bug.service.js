@@ -12,8 +12,13 @@ export const bugService = {
 }
 
 function query({ filterBy, sortBy } = {}) {
-  const filteredBugs = _filter(filterBy)
-  const sortedBugs = _sort(filteredBugs, sortBy)
+  let filteredBugs = _filter(filterBy)
+  let sortedBugs = _sort(filteredBugs, sortBy)
+
+  if (filterBy.pageIdx !== undefined) {
+    const startIdx = filterBy.pageIdx * PAGE_SIZE
+    sortedBugs = sortedBugs.slice(startIdx, startIdx + PAGE_SIZE)
+  }
 
   getNextBug(sortedBugs)
 
@@ -73,11 +78,6 @@ function _filter(filterBy) {
 
   if (filterBy.minSeverity) {
     filteredBugs = filteredBugs.filter((bug) => bug.severity >= filterBy.minSeverity)
-  }
-
-  if (filterBy.pageIdx !== undefined) {
-    const startIdx = filterBy.pageIdx * PAGE_SIZE
-    filteredBugs = filteredBugs.slice(startIdx, startIdx + PAGE_SIZE)
   }
 
   return filteredBugs
