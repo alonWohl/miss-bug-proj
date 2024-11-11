@@ -11,9 +11,9 @@ export const bugService = {
   remove
 }
 
-function query({ filterBy, sortBy } = {}) {
+function query(filterBy = {}) {
   let filteredBugs = _filter(filterBy)
-  let sortedBugs = _sort(filteredBugs, sortBy)
+  let sortedBugs = _sort(filteredBugs, filterBy)
 
   if (filterBy.pageIdx !== undefined) {
     const startIdx = filterBy.pageIdx * PAGE_SIZE
@@ -32,25 +32,30 @@ function getNextBug(bugs) {
   })
 }
 function getById(bugId) {
-  const bug = bugs.find((bug) => bug._id === bugId)
+  const bug = bugs.find(bug => bug._id === bugId)
   if (!bug) return Promise.reject('cannot find bug' + bugId)
   return Promise.resolve(bug)
 }
 
-function remove(bugId) {
-  const bugIdx = bugs.findIndex((bug) => bug._id === bugId)
+function remove(bugId, user) {
+  const bugIdx = bugs.findIndex(bug => bug._id === bugId)
+  if (bugIdx === -1) return Promise.reject('No Such Bug')
+  if (!user.isAdmin && bugs[bugIdx].owner._id !== user._id) return Promise.reject('Not Your Bug')
+
   bugs.splice(bugIdx, 1)
   return _saveBugsToFile()
 }
 
-function save(bugToSave) {
+function save(bugToSave, user) {
   if (bugToSave._id) {
-    const bugIdx = bugs.findIndex((bug) => bug._id === bugToSave._id)
+    if (!user.isAdmin && bugToSave.owner._id !== user._id) return Promise.reject('Not Your Bug')
+    const bugIdx = bugs.findIndex(bug => bug._id === bugToSave._id)
     bugToSave = { ...bugs[bugIdx], ...bugToSave, updatedAt: Date.now() }
     bugs[bugIdx] = bugToSave
   } else {
     bugToSave._id = utilService.makeId()
     bugToSave.createdAt = Date.now()
+    bugToSave.owner = user
     bugs.unshift(bugToSave)
   }
   return _saveBugsToFile().then(() => bugToSave)
@@ -58,9 +63,10 @@ function save(bugToSave) {
 
 function _saveBugsToFile() {
   return new Promise((resolve, reject) => {
-    const data = JSON.stringify(bugs, null, 4)
-    fs.writeFile('data/bugs.json', data, (err) => {
+    const data = JSON.stringify(bugs, null, 2)
+    fs.writeFile('data/bugs.json', data, err => {
       if (err) {
+        loggerService.error('Cannot write to bugs file', err)
         return reject(err)
       }
       resolve()
@@ -73,19 +79,19 @@ function _filter(filterBy) {
 
   if (filterBy.txt) {
     const regExp = new RegExp(filterBy.txt, 'i')
-    filteredBugs = filteredBugs.filter((bug) => regExp.test(bug.title))
+    filteredBugs = filteredBugs.filter(bug => regExp.test(bug.title))
   }
 
   if (filterBy.minSeverity) {
-    filteredBugs = filteredBugs.filter((bug) => bug.severity >= filterBy.minSeverity)
+    filteredBugs = filteredBugs.filter(bug => bug.severity >= filterBy.minSeverity)
   }
 
   return filteredBugs
 }
 
-function _sort(filteredBugs, sortBy) {
-  const sortDir = sortBy.dir
-  switch (sortBy.field) {
+function _sort(filteredBugs, filterBy) {
+  const sortDir = filterBy.sortBy.dir
+  switch (filterBy.sortBy.field) {
     case 'createdAt':
       filteredBugs = filteredBugs.sort((a, b) => sortDir * (a.createdAt - b.createdAt))
       break

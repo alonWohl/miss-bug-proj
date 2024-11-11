@@ -1,62 +1,137 @@
 [
-    {
-        "title": "alon",
-        "severity": 1,
-        "_id": "tGyHT9",
-        "createdAt": 1730673999978
-    },
-    {
-        "title": "asdsad",
-        "severity": 12,
-        "_id": "ywSv8x",
-        "createdAt": 1730673694172,
-        "prevId": "mno345",
-        "nextId": "def456"
-    },
-    {
-        "_id": "def456",
-        "title": "Error loading dashboard",
-        "description": "Page remains blank when opening dashboard",
-        "severity": 2,
-        "createdAt": 1543108369455,
-        "prevId": "ywSv8x",
-        "nextId": "ghi789"
-    },
-    {
-        "_id": "ghi789",
-        "title": "User cannot reset password",
-        "description": "Password reset email not being sent",
-        "severity": 3,
-        "createdAt": 1544109379456,
-        "prevId": "def456",
-        "nextId": "jkl012"
-    },
-    {
-        "_id": "jkl012",
-        "title": "App crashes on login",
-        "description": "App closes unexpectedly after login attempt",
-        "severity": 1,
-        "createdAt": 1545110389457,
-        "prevId": "ghi789",
-        "nextId": "mno345"
-    },
-    {
-        "_id": "mno345",
-        "title": "Search function not returning results",
-        "description": "No results appear when searching",
-        "severity": 15,
-        "createdAt": 1546111399458,
-        "prevId": "jkl012",
-        "nextId": "ywSv8x",
-        "updatedAt": 1730661179838
-    },
-    {
-        "_id": "pqr678",
-        "title": "Image upload failing",
-        "description": "Error message displayed when trying to upload images",
-        "severity": 3,
-        "createdAt": 1547112409459,
-        "prevId": "pqr678",
-        "nextId": "pqr678"
+  {
+    "_id": "ab1234",
+    "title": "Slow loading times",
+    "description": "App takes over 10 seconds to load on startup",
+    "severity": 3,
+    "createdAt": 1600000000000,
+    "prevId": "ij7890",
+    "nextId": "cd5678",
+    "owner": {
+      "_id": "usr003",
+      "fullname": "momo"
     }
+  },
+  {
+    "_id": "cd5678",
+    "title": "Settings not saving",
+    "description": "User preferences reset after closing the app",
+    "severity": 2,
+    "createdAt": 1605000000000,
+    "prevId": "ab1234",
+    "nextId": "ef9012",
+    "owner": {
+      "_id": "usr004",
+      "fullname": "nuni"
+    }
+  },
+  {
+    "_id": "gh3456",
+    "title": "Notification sound missing",
+    "description": "No sound for notifications on Android",
+    "severity": 4,
+    "createdAt": 1610000000000,
+    "prevId": "ef9012",
+    "nextId": "ij7890",
+    "owner": {
+      "_id": "usr002",
+      "fullname": "lala"
+    }
+  },
+  {
+    "_id": "ij7890",
+    "title": "Data sync fails",
+    "description": "Data does not sync between desktop and mobile",
+    "severity": 1,
+    "createdAt": 1612000000000,
+    "prevId": "gh3456",
+    "nextId": "ab1234",
+    "owner": {
+      "_id": "usr003",
+      "fullname": "momo"
+    }
+  },
+  {
+    "_id": "kl1234",
+    "title": "Unresponsive button",
+    "description": "Submit button does not work on certain forms",
+    "severity": 2,
+    "createdAt": 1615000000000,
+    "prevId": "ij7890",
+    "nextId": "mn5678",
+    "owner": {
+      "_id": "usr004",
+      "fullname": "nuni"
+    }
+  },
+  {
+    "_id": "mn5678",
+    "title": "Misalignment in footer",
+    "description": "Footer items are not aligned properly on the main page",
+    "severity": 3,
+    "createdAt": 1620000000000,
+    "prevId": "kl1234",
+    "nextId": "op9012",
+    "owner": {
+      "_id": "usr001",
+      "fullname": "baba"
+    }
+  },
+  {
+    "_id": "op9012",
+    "title": "Login page loading delay",
+    "description": "Login page takes too long to load on iOS devices",
+    "severity": 2,
+    "createdAt": 1623000000000,
+    "prevId": "mn5678",
+    "nextId": "qr3456",
+    "owner": {
+      "_id": "usr002",
+      "fullname": "lala"
+    }
+  },
+  {
+    "_id": "qr3456",
+    "title": "Profile image upload error",
+    "description": "Users cannot upload profile pictures",
+    "severity": 1,
+    "createdAt": 1626000000000,
+    "prevId": "op9012",
+    "nextId": "st7890",
+    "owner": {
+      "_id": "usr003",
+      "fullname": "momo"
+    }
+  },
+  {
+    "_id": "st7890",
+    "title": "Inconsistent dark mode",
+    "description": "Some pages do not follow dark mode settings",
+    "severity": 4,
+    "createdAt": 1630000000000,
+    "prevId": "qr3456",
+    "nextId": "ab1234",
+    "owner": {
+      "_id": "usr004",
+      "fullname": "nuni"
+    }
+  },
+  {
+    "_id": "87Vwjb",
+    "title": "App crashes on login",
+    "severity": 1,
+    "createdAt": 1731275329698,
+    "prevId": "def456",
+    "nextId": "bs5nYL",
+    "owner": {
+      "_id": "usr002",
+      "fullname": "lala"
+    }
+  },
+  {
+    "_id": "I2JieI",
+    "title": "Error loading dashboard",
+    "severity": 2,
+    "createdAt": 1731320157047
+  }
 ]

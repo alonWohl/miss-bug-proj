@@ -11,10 +11,10 @@ export function BugDetails() {
   useEffect(() => {
     bugService
       .getById(bugId)
-      .then((bug) => {
+      .then(bug => {
         setBug(bug)
       })
-      .catch((err) => {
+      .catch(err => {
         showErrorMsg('Cannot load bug')
       })
   }, [])
