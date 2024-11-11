@@ -1,4 +1,4 @@
-const Router = ReactRouterDOM.BrowserRouter
+const Router = ReactRouterDOM.HashRouter
 const { Route, Routes } = ReactRouterDOM
 
 import { AppHeader } from './cmps/AppHeader.jsx'
