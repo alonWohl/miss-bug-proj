@@ -6,7 +6,6 @@ export const userService = {
   signup,
   logout,
   getLoggedinUser,
-
   getById,
   getEmptyCredentials,
   getUsersList
@@ -17,7 +16,7 @@ function login({ username, password }) {
     .post('/api/auth/login', { username, password })
     .then(res => res.data)
     .then(user => {
-      _setLogginedUser(user)
+      _setLoggedinUser(user)
       return user
     })
 }
@@ -58,7 +57,7 @@ function getEmptyCredentials() {
   }
 }
 
-function _setLogginedUser(user) {
+function _setLoggedinUser(user) {
   const userToSave = { _id: user._id, fullname: user.fullname, isAdmin: user.isAdmin }
   sessionStorage.setItem(STORAGE_KEY_LOGGEDIN_USER, JSON.stringify(userToSave))
   return userToSave

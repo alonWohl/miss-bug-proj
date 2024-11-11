@@ -3,14 +3,13 @@ import { utilService } from './util.service.js'
 import Cryptr from 'cryptr'
 
 const cryptr = new Cryptr(process.env.SECRET1 || 'babab')
-const users = utilService.readJsonFile('data/users.json')
+let users = utilService.readJsonFile('data/users.json') // Changed to let to allow reassignment
 
 export const userService = {
   query,
   getById,
   remove,
   save,
-
   checkLogin,
   getLoginToken,
   validateToken
@@ -39,7 +38,8 @@ function remove(userId) {
 }
 
 function save(user) {
-  if (user) user.id = utilService.makeId()
+  if (!user._id) user._id = utilService.makeId()
+
   users.push(user)
 
   return _saveUsersToFile().then(() => ({
@@ -80,7 +80,7 @@ function _saveUsersToFile() {
     const usersStr = JSON.stringify(users, null, 2)
     fs.writeFile('data/users.json', usersStr, err => {
       if (err) {
-        return console.log(err)
+        return reject(err)
       }
       resolve()
     })

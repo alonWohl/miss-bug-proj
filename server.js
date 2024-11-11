@@ -32,14 +32,12 @@ app.get('/api/bug', (req, res) => {
     }
   }
 
-  if (req.query.sortBy) req.query.sortBy = JSON.parse(req.query.sortBy)
-
   bugService
     .query(filterBy)
     .then(bugs => res.send(bugs))
     .catch(err => {
-      loggerService.error('Cannot Get bugs', err)
-      res.status(400).send('Cannot Get bugs')
+      loggerService.error('Cannot get bugs', err)
+      res.status(400).send('Cannot get bugs')
     })
 })
 
@@ -50,16 +48,17 @@ app.get('/api/bug/:bugId', manageVisitedBugs, (req, res) => {
     .getById(bugId)
     .then(bug => res.send(bug))
     .catch(err => {
-      loggerService.error('cannot get bug', err)
-      res.status(400).send('cannot get bug')
+      loggerService.error('Cannot get bug', err)
+      res.status(400).send('Cannot get bug')
     })
 })
 
 app.post('/api/bug', (req, res) => {
   const user = userService.validateToken(req.cookies.loginToken)
   if (!user) return res.status(401).send('Unauthenticated')
+
   const bugToSave = {
-    _id: req.params.id,
+    _id: req.body._id,
     title: req.body.title,
     severity: +req.body.severity,
     owner: req.body.owner
@@ -70,7 +69,7 @@ app.post('/api/bug', (req, res) => {
     .then(savedBug => res.send(savedBug))
     .catch(err => {
       loggerService.error('Cannot save bug', err)
-      res.status(400).send('Cannot save bug', err)
+      res.status(400).send('Cannot save bug')
     })
 })
 
@@ -79,7 +78,7 @@ app.put('/api/bug/:bugId', (req, res) => {
   if (!user) return res.status(401).send('Unauthenticated')
 
   const bugToSave = {
-    _id: req.params.id,
+    _id: req.params.bugId,
     title: req.body.title,
     severity: +req.body.severity,
     owner: req.body.owner
@@ -89,45 +88,42 @@ app.put('/api/bug/:bugId', (req, res) => {
     .save(bugToSave)
     .then(savedBug => res.send(savedBug))
     .catch(err => {
-      loggerService.error('Cannot save bug', err)
-      res.status(400).send('Cannot save bug', err)
+      loggerService.error('Cannot update bug', err)
+      res.status(400).send('Cannot update bug')
     })
 })
 
-app.delete('/api/bug/:bugId/', (req, res) => {
+app.delete('/api/bug/:bugId', (req, res) => {
   const user = userService.validateToken(req.cookies.loginToken)
   if (!user) return res.status(401).send('Unauthenticated')
 
   const { bugId } = req.params
   bugService
     .remove(bugId, user)
-    .then(() => res.send(bugId + 'Removed Successfully!'))
+    .then(() => res.send(`${bugId} removed successfully!`))
     .catch(err => {
-      loggerService.error('cannot remove bug', err)
-      res.status(400).send('cannot remove bug')
+      loggerService.error('Cannot remove bug', err)
+      res.status(400).send('Cannot remove bug')
     })
 })
 
 app.get('/pdf', (req, res) => {
-  const path = './pdfs/'
-  console.log('in pdf')
-
   bugService.query().then(bugs => {
     bugs.sort((a, b) => b.createdAt - a.createdAt)
     const rows = bugs.map(({ title, description, severity }) => [title, description, severity])
     const headers = ['Title', 'Description', 'Severity']
-
     const fileName = 'bugs'
+
     pdfService
-      .createPdf({ headers, rows, title: 'Bugs report', fileName })
+      .createPdf({ headers, rows, title: 'Bugs Report', fileName })
       .then(() => {
         res.setHeader('Content-Type', 'application/pdf')
-        res.sendFile(`${process.cwd()}/pdfs/${fileName}.pdf`)
+        res.sendFile(path.resolve(__dirname, `pdfs/${fileName}.pdf`))
       })
       .catch(err => {
         console.error(err)
-        loggerService.error('Cannot download Pdf', err)
-        res.send('We have a problem, try agin soon')
+        loggerService.error('Cannot download PDF', err)
+        res.status(500).send('Problem generating PDF. Try again soon.')
       })
   })
 })
@@ -141,7 +137,7 @@ app.post('/api/auth/login', (req, res) => {
       res.cookie('loginToken', loginToken)
       res.send(user)
     } else {
-      res.status(404).send('Invalid Credentials')
+      res.status(404).send('Invalid credentials')
     }
   })
 })
@@ -155,17 +151,19 @@ app.post('/api/auth/signup', (req, res) => {
       res.cookie('loginToken', loginToken)
       res.send(user)
     } else {
-      res.status(400).send('Cannot signup')
+      res.status(400).send('Cannot sign up')
     }
   })
 })
 
 app.post('/api/user', (req, res) => {
   const user = userService.validateToken(req.cookies.loginToken)
-  if (!user && !user.isAdmin) return res.status(401).send('Unauthenticated')
+  if (!user || !user.isAdmin) return res.status(401).send('Unauthorized')
+
   userService.query().then(users => res.send(users))
 })
-app.get('/api/user/:userId/', (req, res) => {
+
+app.get('/api/user/:userId', (req, res) => {
   const { userId } = req.params
   const user = userService.validateToken(req.cookies.loginToken)
   if (!user) return res.status(401).send('Unauthenticated')
@@ -175,14 +173,15 @@ app.get('/api/user/:userId/', (req, res) => {
 
 app.post('/api/auth/logout', (req, res) => {
   res.clearCookie('loginToken')
-  res.send('logged-out!')
+  res.send('Logged out!')
 })
 
 app.get('/*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'public', 'index.html'))
 })
+
 function manageVisitedBugs(req, res, next) {
-  let visitedBugs = req.cookies.visitedBugs || []
+  let visitedBugs = req.cookies.visitedBugs ? JSON.parse(req.cookies.visitedBugs) : []
   const { bugId } = req.params
 
   if (!visitedBugs.includes(bugId)) {
@@ -190,12 +189,10 @@ function manageVisitedBugs(req, res, next) {
   }
   if (visitedBugs.length > 3) {
     loggerService.error(`User visited more than 3 bugs: ${visitedBugs}`)
-    return res.status(401).send('Wait for a bit')
+    return res.status(429).send('Too many requests. Please wait a moment.')
   }
 
-  res.cookie('visitedBugs', visitedBugs, { maxAge: 7 * 1000 })
-
+  res.cookie('visitedBugs', JSON.stringify(visitedBugs), { maxAge: 7000 })
   next()
-
   console.log('User visited the following bugs:', visitedBugs)
 }

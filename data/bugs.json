@@ -127,11 +127,5 @@
       "_id": "usr002",
       "fullname": "lala"
     }
-  },
-  {
-    "_id": "I2JieI",
-    "title": "Error loading dashboard",
-    "severity": 2,
-    "createdAt": 1731320157047
   }
 ]
